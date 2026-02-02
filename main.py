@@ -9,12 +9,15 @@ weights = torch.rand(10,784)
 
 mnist = datasets.MNIST(root =" ./data", download = True, train = True )
 
-image,label = mnist[0]
 # forward pass
 
 # alright I asked Claude why I have to use  totensor instead of  PILToTensor it said smth abt gradient. Get back to it after u code the gradient part.
 
 to_tensor = transforms.ToTensor()
+
+# this will be 
+forward_predictions = []
+
 
 
 for image,label in mnist:
@@ -29,8 +32,24 @@ for image,label in mnist:
         num_scores[i] = score
 
     # in forward pass,a prediction is made using initial weights
-    print (np.argmax(num_scores))
+    
+    #print (np.argmax(num_scores))
+    
+    # list of all the predictions made in the forward pass
+    forward_predictions.append(num_scores)
 
-print ("Hello WOrld")
+
+loss = np.zeros(60000)
+
+
+
+for i in range (len(forward_predictions)):
+    correct_number = mnist[i][1]
+    total_magnitude_of_all_preds = np.sum(forward_predictions[i])
+    prediction_of_correct_num = forward_predictions[i][correct_number]
+    prob_of_correctness = prediction_of_correct_num / total_magnitude_of_all_preds
+    loss[i] = (-1 * np.log(prob_of_correctness))
+        
+print(loss)
 
 
