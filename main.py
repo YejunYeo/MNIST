@@ -6,6 +6,8 @@ import torch
 # weight are assigned random floats
 weights = torch.rand(10,784)
 
+# disabling the abbreviation of numpy arrays
+np.set_printoptions(threshold=np.inf)
 
 mnist = datasets.MNIST(root =" ./data", download = True, train = True )
 
@@ -28,6 +30,7 @@ for image,label in mnist:
 
     # a number is assigned for each possible digit from 0 to 9
     for i in range (10):
+        # find the dot product beteween the image and the weights for each pixel
         score  =  torch.dot(flattened_tensor, weights[i])
         num_scores[i] = score
 
@@ -37,6 +40,7 @@ for image,label in mnist:
     
     # list of all the predictions made in the forward pass
     forward_predictions.append(num_scores)
+
 
 
 loss = np.zeros(60000)
@@ -51,5 +55,14 @@ for i in range (len(forward_predictions)):
     loss[i] = (-1 * np.log(prob_of_correctness))
         
 print(loss)
+
+# the loss will be approx 2.3 because the prob of correctness is about 0.1
+# this is beacause the image is consisted of 0s and 1s that do not change its location so only weights at particular indexes are used
+# For example, lets say that there are 300 1s in the 784 pixel image. 300 Weights will be multiplied by 1 and 300 * 0.5 = 150. 
+# Due to Law of Large Numbers.
+
+
+
+# Now Implement Back Propogation
 
 
