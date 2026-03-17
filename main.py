@@ -4,7 +4,7 @@ from torchvision import datasets, transforms
 import torch
 
 # weight are assigned random floats
-weights = torch.rand(10,784)
+weights = torch.randn(10,784) * 0.1
 
 # disabling the abbreviation of numpy arrays
 np.set_printoptions(threshold=np.inf)
@@ -24,14 +24,14 @@ forward_predictions = []
 
 for image,label in mnist:
     img_to_tensor = to_tensor(image)
-    flattened_tensor = torch.flatten(img_to_tensor)
+    flattened_img = torch.flatten(img_to_tensor)
     # maximum = -999
-    num_scores = np.zeros(10)
+    num_scores = torch.zeros(10)
 
     # a number is assigned for each possible digit from 0 to 9
     for i in range (10):
         # find the dot product beteween the image and the weights for each pixel
-        score  =  torch.dot(flattened_tensor, weights[i])
+        score  =  torch.dot(flattened_img, weights[i])
         num_scores[i] = score
 
     # in forward pass,a prediction is made using initial weights
@@ -41,9 +41,7 @@ for image,label in mnist:
     # list of all the predictions made in the forward pass
     forward_predictions.append(num_scores)
 
-
-
-loss = np.zeros(60000)
+loss = torch.zeros(60000)
 
 
 
@@ -51,7 +49,7 @@ for i in range (len(forward_predictions)):
     correct_number = mnist[i][1]
     total_magnitude_of_all_preds = np.sum(forward_predictions[i])
     prediction_of_correct_num = forward_predictions[i][correct_number]
-    prob_of_correctness = prediction_of_correct_num / total_magnitude_of_all_preds
+    prob_of_correctness = np.maximum(0, prediction_of_correct_num / total_magnitude_of_all_preds)
     loss[i] = (-1 * np.log(prob_of_correctness))
         
 print(loss)
@@ -64,5 +62,8 @@ print(loss)
 
 
 # Now Implement Back Propogation
+ 
+
+
 
 
