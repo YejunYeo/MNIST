@@ -31,14 +31,15 @@ for i in range (length):
     data_pixel_only= data[:,1:] 
 
 data_pixel_only = normalize_np_array(data_pixel_only)
-data_pixel_only = np.transpose(data_pixel_only)
+#data_pixel_only = np.transpose(data_pixel_only)
 
 
-weights_layer1 = np.random.rand(no_of_neurons_layer_1,pixels)
+weights_layer1 =np.transpose( np.random.rand(no_of_neurons_layer_1,pixels))
 biases_layer1 = np.random.rand(no_of_neurons_layer_1)
 
 
-weights_layer2 = np.random.rand(16,32)
+weights_layer2 = np.transpose(np.random.rand(16,32))
+
 biases_layer2 = np.random.rand(16)
 
 weights_final = np.random.rand(16, 10)
