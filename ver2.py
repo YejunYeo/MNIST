@@ -63,12 +63,34 @@ def calculate_loss(layer_final, answer):
     arr = softmax(layer_final)
     return cross_entropy(arr,answer)
 
+def calculate_gradient(arr):
+    arr = softmax(arr)
+#backpropogation
+# parameters should be weights, loss, input, bias
+#def backprop(inputs,loss,weights,bias):
+ #   loss = 
+
+
+def feed_forward_final(input_pixels,weights, bias):
+             weighted_sum  = np.dot(input_pixels, weights) + bias
+             return softmax(weighted_sum);
+
+#compare to one-hot vector
+def make_one_hot_vector (index):
+    one_hot = np.zeros(10)
+    one_hot[index] = 1;
+    return one_hot
+
 for i in range (length):
     layer_1 = feed_forward(data_pixel_only[i],weights_layer1, biases_layer1)
     layer_2 = feed_forward(layer_1, weights_layer2, biases_layer2)
-    layer_final = feed_forward(layer_2, weights_final, biases_final)
-    loss = calculate_loss(layer_final,labels_only[i])
-    print (loss)
+    layer_final = feed_forward_final(layer_2, weights_final, biases_final)
+    one_hot = make_one_hot_vector(labels_only[i])
+    gradient = layer_final - one_hot
+    print (gradient)
+    
+    #loss = calculate_loss(layer_final,labels_only[i])
+    #print (loss)
 
 #print(layer_final)
 
