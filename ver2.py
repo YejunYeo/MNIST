@@ -7,7 +7,10 @@ data = pd.read_csv("/Users/yeoyejun/Downloads/train.csv")
 data = data.to_numpy()
 
 length = len(data)
-print(data)
+
+print (length)
+
+#print(data)
 pixels = 28 * 28
 
 #forward pass
@@ -79,23 +82,22 @@ def make_one_hot_vector(num):
     arr[num] = 1;
     return arr
 
-
 for i in range (length):
     layer_1 = feed_forward(data_pixel_only[i],weights_layer1, biases_layer1)
     layer_2 = feed_forward(layer_1, weights_layer2, biases_layer2)
     layer_final = feed_forward_final(layer_2, weights_final, biases_final)
     loss = calc_loss(layer_final,labels_only[i])
     #dl_dz3 is a column vector
-    dl_dz3 = layer_final - make_one_hot_vector(labels_only[i])
+    dl_dz3 = layer_final - make_one_hot_vector(labels_only[i]).reshape(-1,1)
     dl_dw3 = np.dot(dl_dz3,np.transpose(layer_2))
     dl_db3 = dl_dz3
     dl_dz2 = np.dot(np.transpose(weights_final),dl_dz3) * ((layer_2) *(np.ones((16, 1)) - layer_2))
     dl_dw2 = np.dot(dl_dz2, np.transpose(layer_1))
     dl_db2 = dl_dz2
     dl_dz1 = np.dot(np.transpose(weights_layer2),dl_dz2) * ((layer_1) *(np.ones((32, 1)) - layer_1))
-    dl_dw1 = np.dot(dl_dz1, np.transpose(data_pixel_only[i]))
+    dl_dw1 = np.dot(dl_dz1, data_pixel_only[i].reshape(1,-1))
     dl_db1 = dl_dz1
-    learning_rate = 0.01
+    learning_rate = 0.1
     weights_final = weights_final -  learning_rate * dl_dw3
     biases_final = biases_final - learning_rate * dl_db3
     weights_layer2 = weights_layer2 - learning_rate * dl_dw2
@@ -103,4 +105,18 @@ for i in range (length):
     weights_layer1 = weights_layer1 - learning_rate * dl_dw1
     biases_layer1 = biases_layer1 - learning_rate * dl_db1
 
-print(layer_final)
+testing = pd.read_csv("/Users/yeoyejun/Downloads/test.csv")
+testing = testing.to_numpy
+
+test_length = len(testing)
+
+#counters to get get accuracy
+correct = 0
+wrong = 0
+
+def highest_prob (arr):
+    
+
+for i in range (test_length):
+
+
