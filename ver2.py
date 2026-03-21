@@ -48,40 +48,59 @@ biases_layer2 = np.random.rand(16, 1)
 weights_final = np.random.randn(10, 16)
 biases_final = np.random.rand(10,1)
 
-for i in range (length):
-    layer_1 = feed_forward(data_pixel_only[i],weights_layer1, biases_layer1)
-    layer_2 = feed_forward(layer_1, weights_layer2, biases_layer2)
-    layer_final = feed_forward_final(layer_2, weights_final, biases_final)
-    print(layer_final)
+#for i in range (length):
+#    layer_1 = feed_forward(data_pixel_only[i],weights_layer1, biases_layer1)
+#    layer_2 = feed_forward(layer_1, weights_layer2, biases_layer2)
+#    layer_final = feed_forward_final(layer_2, weights_final, biases_final)
+#    print(layer_final)
+
 # Back Propagation
 
 labels_only = data[:, :1]
 
-#calculate the loss
-def cross_entropy(arr, answer):
+#this is the cross entropy function
+def calc_loss(arr, answer):
     return(-1 *  np.log(arr[answer]))
 
-def calculate_loss(layer_final, answer):
-    arr = softmax(layer_final)
-    return cross_entropy(arr,answer)
-
-def calculate_gradient(arr):
-    arr = softmax(arr)
-#backpropogation
-# parameters should be weights, loss, input, bias
-#def backprop(inputs,loss,weights,bias):
- #   loss = 
-
-def make_one_hot_vector (index):
+#one-hot vector of true probabilities
+def true_probs(index):
     one_hot = np.zeros(10)
-    one_hot[index] = 1;
+    one_hot[index] = 1
+    one_hot =  one_hot.reshape(-1,1)
     return one_hot
-    #one_hot = make_one_hot_vector(labels_only[i])
 
-   # dl_dz3 = layer_final - one_hot
-    #print (gradient)
-    
-    #loss = calculate_loss(layer_final,labels_only[i])
-    #print (loss)
+def oneminus_activ(arr):
+    new_arr = 1 - arr
+    new_arr = np.transpose(new_arr)
+    return new_arr
 
-#print(layer_final)
+def make_one_hot_vector(num):
+    arr = np.zeros(10)
+    arr[num] = 1;
+    return arr
+
+
+for i in range (length):
+    layer_1 = feed_forward(data_pixel_only[i],weights_layer1, biases_layer1)
+    layer_2 = feed_forward(layer_1, weights_layer2, biases_layer2)
+    layer_final = feed_forward_final(layer_2, weights_final, biases_final)
+    loss = calc_loss(layer_final,labels_only[i])
+    #dl_dz3 is a column vector
+    dl_dz3 = layer_final - make_one_hot_vector(labels_only[i])
+    dl_dw3 = np.dot(dl_dz3,np.transpose(layer_2))
+    dl_db3 = dl_dz3
+    dl_dz2 = np.dot(np.transpose(weights_final),dl_dz3) * ((layer_2) *(np.ones((16, 1)) - layer_2))
+    dl_dw2 = np.dot(dl_dz2, np.transpose(layer_1))
+    dl_db2 = dl_dz2
+    dl_dz1 = np.dot(np.transpose(weights_layer2),dl_dz2) * ((layer_1) *(np.ones((32, 1)) - layer_1))
+    dl_dw1 = np.dot(dl_dz1, np.transpose(data_pixel_only[i]))
+    dl_db1 = dl_dz1
+    learning_rate = 0.01
+    weights_final = weights_final -  learning_rate * dl_dw3
+    biases_final = biases_final - learning_rate * dl_db3
+    weights_layer2 = weights_layer2 - learning_rate * dl_dw2
+    biases_layer2 = biases_layer2 - learning_rate * dl_db2
+    weights_layer1 = weights_layer1 - learning_rate * dl_dw1
+    biases_layer1 = biases_layer1 - learning_rate * dl_db1
+
+print(layer_final)
