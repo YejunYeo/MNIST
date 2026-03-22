@@ -1,69 +1,152 @@
-import random
 import numpy as np
-from torchvision import datasets, transforms
-import torch
+import pandas as pd
+from matplotlib import pyplot as plt
 
-# weight are assigned random floats
-weights = torch.randn(10,784) * 0.1
+data = pd.read_csv("/Users/yeoyejun/Downloads/mnist_train.csv")
 
-# disabling the abbreviation of numpy arrays
-np.set_printoptions(threshold=np.inf)
+data = data.to_numpy()
 
-mnist = datasets.MNIST(root =" ./data", download = True, train = True )
+length = len(data)
 
-# forward pass
+#print(data)
+pixels = 28 * 28
 
-# alright I asked Claude why I have to use  totensor instead of  PILToTensor it said smth abt gradient. Get back to it after u code the gradient part.
+#forward pass
+def sigmoid(x:int):
+    return 1 / (1 + np.exp(-x))
 
-to_tensor = transforms.ToTensor()
+def normalize_np_array(arr):
+        norm_arr = arr/255
+        return norm_arr
 
-# this will be 
-forward_predictions = []
+def feed_forward(input_pixels,weights, bias):
+             input_pixels = input_pixels.reshape(-1,1)
+             weighted_sum  = np.dot( weights, input_pixels) + bias
+             layer_1 = sigmoid(weighted_sum)
+             return layer_1
+
+def softmax(arr):
+    denominator = np.sum (np.exp(arr))
+    arr = np.exp(arr)/denominator
+    return arr
+
+def feed_forward_final(input_pixels,weights, bias):
+             input_pixels = input_pixels.reshape(-1,1)
+             weighted_sum  = np.dot(weights,input_pixels) + bias
+             return softmax(weighted_sum);
+
+data_pixel_only= data[:,1:] 
+
+data_pixel_only = normalize_np_array(data_pixel_only)
+
+weights_layer1 = np.random.randn(32,pixels)
+biases_layer1 = np.random.rand(32, 1)
+
+weights_layer2 = np.random.randn(16,32)
+
+biases_layer2 = np.random.rand(16, 1)
+
+weights_final = np.random.randn(10, 16)
+biases_final = np.random.rand(10,1)
+
+#for i in range (length):
+#    layer_1 = feed_forward(data_pixel_only[i],weights_layer1, biases_layer1)
+#    layer_2 = feed_forward(layer_1, weights_layer2, biases_layer2)
+#    layer_final = feed_forward_final(layer_2, weights_final, biases_final)
+#    print(layer_final)
+
+# Back Propagation
+
+labels_only = data[:, :1]
+
+#this is the cross entropy function
+def calc_loss(arr, answer):
+    return(-1 *  np.log(arr[answer]))
+
+#one-hot vector of true probabilities
+def true_probs(index):
+    one_hot = np.zeros(10)
+    one_hot[index] = 1
+    one_hot =  one_hot.reshape(-1,1)
+    return one_hot
+
+def oneminus_activ(arr):
+    new_arr = 1 - arr
+    new_arr = np.transpose(new_arr)
+    return new_arr
+
+def make_one_hot_vector(num):
+    arr = np.zeros(10)
+    arr[num] = 1;
+    return arr
+
+for i in range (length):
+    layer_1 = feed_forward(data_pixel_only[i],weights_layer1, biases_layer1)
+    layer_2 = feed_forward(layer_1, weights_layer2, biases_layer2)
+    layer_final = feed_forward_final(layer_2, weights_final, biases_final)
+    loss = calc_loss(layer_final,labels_only[i])
+    #dl_dz3 is a column vector
+    dl_dz3 = layer_final - make_one_hot_vector(labels_only[i]).reshape(-1,1)
+    dl_dw3 = np.dot(dl_dz3,np.transpose(layer_2))
+    dl_db3 = dl_dz3
+    dl_dz2 = np.dot(np.transpose(weights_final),dl_dz3) * ((layer_2) *(np.ones((16, 1)) - layer_2))
+    dl_dw2 = np.dot(dl_dz2, np.transpose(layer_1))
+    dl_db2 = dl_dz2
+    dl_dz1 = np.dot(np.transpose(weights_layer2),dl_dz2) * ((layer_1) *(np.ones((32, 1)) - layer_1))
+    dl_dw1 = np.dot(dl_dz1, data_pixel_only[i].reshape(1,-1))
+    dl_db1 = dl_dz1
+    learning_rate = 0.1
+    weights_final = weights_final -  learning_rate * dl_dw3
+    biases_final = biases_final - learning_rate * dl_db3
+    weights_layer2 = weights_layer2 - learning_rate * dl_dw2
+    biases_layer2 = biases_layer2 - learning_rate * dl_db2
+    weights_layer1 = weights_layer1 - learning_rate * dl_dw1
+    biases_layer1 = biases_layer1 - learning_rate * dl_db1
+#testing
+
+testing = pd.read_csv("/Users/yeoyejun/Downloads/mnist_test.csv")
+testing = testing.to_numpy()
+
+print (testing)
+test_length = len(testing)
+
+#counters to get get accuracy
+correct = 0
+wrong = 0
+
+
+labels_only_test = testing[:, :1]
+
+testing_data_pixel_only= testing[:,1:] 
+
+testing_data_pixel_only = normalize_np_array(testing_data_pixel_only)
 
 
 
-for image,label in mnist:
-    img_to_tensor = to_tensor(image)
-    flattened_img = torch.flatten(img_to_tensor)
-    # maximum = -999
-    num_scores = torch.zeros(10)
 
-    # a number is assigned for each possible digit from 0 to 9
+def highest_prob (arr):
+    maximum = -1
+    idx = -1
     for i in range (10):
-        # find the dot product beteween the image and the weights for each pixel
-        score  =  torch.dot(flattened_img, weights[i])
-        num_scores[i] = score
+        if (arr[i,0] > maximum ):
+            maximum = arr[i,0]
+            idx = i
+    return idx
 
-    # in forward pass,a prediction is made using initial weights
-    
-    #print (np.argmax(num_scores))
-    
-    # list of all the predictions made in the forward pass
-    forward_predictions.append(num_scores)
-
-loss = torch.zeros(60000)
-
-
-
-for i in range (len(forward_predictions)):
-    correct_number = mnist[i][1]
-    total_magnitude_of_all_preds = np.sum(forward_predictions[i])
-    prediction_of_correct_num = forward_predictions[i][correct_number]
-    prob_of_correctness = np.maximum(0, prediction_of_correct_num / total_magnitude_of_all_preds)
-    loss[i] = (-1 * np.log(prob_of_correctness))
-        
-print(loss)
-
-# the loss will be approx 2.3 because the prob of correctness is about 0.1
-# this is beacause the image is consisted of 0s and 1s that do not change its location so only weights at particular indexes are used
-# For example, lets say that there are 300 1s in the 784 pixel image. 300 Weights will be multiplied by 1 and 300 * 0.5 = 150. 
-# Due to Law of Large Numbers.
+for i in range (test_length):
+    layer_1 = feed_forward(testing_data_pixel_only[i],weights_layer1, biases_layer1)
+    layer_2 = feed_forward(layer_1, weights_layer2, biases_layer2)
+    layer_final = feed_forward_final(layer_2, weights_final, biases_final)
+    answer = labels_only_test[i] 
+    if (highest_prob(layer_final) == answer):
+        correct += 1
+    else:
+        wrong += 1
 
 
+if (wrong == 0):
+    print ("100%")
 
-# Now Implement Back Propogation
- 
-
-
-
+else:
+    print (f'The accuracy is {correct/ (wrong + correct) * 100}%')
 
