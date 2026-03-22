@@ -2,13 +2,11 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-data = pd.read_csv("/Users/yeoyejun/Downloads/train.csv")
+data = pd.read_csv("/Users/yeoyejun/Downloads/mnist_train.csv")
 
 data = data.to_numpy()
 
 length = len(data)
-
-print (length)
 
 #print(data)
 pixels = 28 * 28
@@ -104,19 +102,51 @@ for i in range (length):
     biases_layer2 = biases_layer2 - learning_rate * dl_db2
     weights_layer1 = weights_layer1 - learning_rate * dl_dw1
     biases_layer1 = biases_layer1 - learning_rate * dl_db1
+#testing
 
-testing = pd.read_csv("/Users/yeoyejun/Downloads/test.csv")
-testing = testing.to_numpy
+testing = pd.read_csv("/Users/yeoyejun/Downloads/mnist_test.csv")
+testing = testing.to_numpy()
 
+print (testing)
 test_length = len(testing)
 
 #counters to get get accuracy
 correct = 0
 wrong = 0
 
+
+labels_only_test = testing[:, :1]
+
+testing_data_pixel_only= testing[:,1:] 
+
+testing_data_pixel_only = normalize_np_array(testing_data_pixel_only)
+
+
+
+
 def highest_prob (arr):
-    
+    maximum = -1
+    idx = -1
+    for i in range (10):
+        if (arr[i,0] > maximum ):
+            maximum = arr[i,0]
+            idx = i
+    return idx
 
 for i in range (test_length):
+    layer_1 = feed_forward(testing_data_pixel_only[i],weights_layer1, biases_layer1)
+    layer_2 = feed_forward(layer_1, weights_layer2, biases_layer2)
+    layer_final = feed_forward_final(layer_2, weights_final, biases_final)
+    answer = labels_only_test[i] 
+    if (highest_prob(layer_final) == answer):
+        correct += 1
+    else:
+        wrong += 1
 
+
+if (wrong == 0):
+    print ("100%")
+
+else:
+    print (f'The accuracy is {correct/ (wrong + correct) * 100}%')
 
